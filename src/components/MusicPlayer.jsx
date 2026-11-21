@@ -1,39 +1,41 @@
 import { useEffect, useRef, useState } from 'react';
 import { asset } from '../lib/asset.js';
 
-const START = 15; // la canción empieza desde el segundo 15
+// musica-virgencita.mp3 ya está recortada para empezar en el segundo 15 de la canción original,
+// así funciona igual en cualquier navegador y servidor (sin depender de saltos de tiempo).
 
 export default function MusicPlayer() {
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const userPaused = useRef(false);
+  const fadeRef = useRef(0);
 
   const play = async () => {
     const a = audioRef.current;
     if (!a) return;
-    if (a.currentTime < START) a.currentTime = START;
     try {
+      a.volume = 0;
       await a.play();
+      // entrada suave del volumen
+      cancelAnimationFrame(fadeRef.current);
+      const t0 = performance.now();
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / 1500);
+        a.volume = k;
+        if (k < 1) fadeRef.current = requestAnimationFrame(step);
+      };
+      fadeRef.current = requestAnimationFrame(step);
     } catch {
-      /* el navegador todavía no lo permite */
+      a.volume = 1; /* el navegador todavía no lo permite */
     }
   };
 
   useEffect(() => {
     const a = audioRef.current;
-    const onMeta = () => {
-      if (a.currentTime < START) a.currentTime = START;
-    };
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
-    const onEnded = () => {
-      a.currentTime = START;
-      a.play().catch(() => {});
-    };
-    a.addEventListener('loadedmetadata', onMeta);
     a.addEventListener('play', onPlay);
     a.addEventListener('pause', onPause);
-    a.addEventListener('ended', onEnded);
 
     // intenta sonar al abrir; si el navegador lo bloquea, arranca con el primer toque en la página
     play();
@@ -46,10 +48,9 @@ export default function MusicPlayer() {
     window.addEventListener('keydown', onFirst);
 
     return () => {
-      a.removeEventListener('loadedmetadata', onMeta);
+      cancelAnimationFrame(fadeRef.current);
       a.removeEventListener('play', onPlay);
       a.removeEventListener('pause', onPause);
-      a.removeEventListener('ended', onEnded);
       window.removeEventListener('pointerdown', onFirst);
       window.removeEventListener('keydown', onFirst);
     };
@@ -69,7 +70,7 @@ export default function MusicPlayer() {
 
   return (
     <>
-      <audio ref={audioRef} src={asset('musica.mp3')} preload="auto" />
+      <audio ref={audioRef} src={asset('musica-virgencita.mp3')} preload="auto" loop />
       <button
         className={`music-btn ${playing ? 'is-playing' : ''}`}
         onPointerDown={(e) => e.stopPropagation()}
