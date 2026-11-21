@@ -47,7 +47,29 @@ export default function MusicPlayer() {
     window.addEventListener('pointerdown', onFirst);
     window.addEventListener('keydown', onFirst);
 
+    // al salir de la página (otra pestaña, otra app, pantalla bloqueada) se pausa sola;
+    // al volver, sigue sonando si estaba sonando
+    let pausedByLeaving = false;
+    const onLeave = () => {
+      if (!a.paused) {
+        pausedByLeaving = true;
+        cancelAnimationFrame(fadeRef.current);
+        a.pause();
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) onLeave();
+      else if (pausedByLeaving && !userPaused.current) {
+        pausedByLeaving = false;
+        play();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onLeave);
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onLeave);
       cancelAnimationFrame(fadeRef.current);
       a.removeEventListener('play', onPlay);
       a.removeEventListener('pause', onPause);
