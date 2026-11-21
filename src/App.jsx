@@ -7,6 +7,7 @@ import GreatDay from './components/GreatDay.jsx';
 import Novena from './components/Novena.jsx';
 import DailyDial from './components/DailyDial.jsx';
 import BarrioSearch from './components/BarrioSearch.jsx';
+import MusicPlayer from './components/MusicPlayer.jsx';
 import { LEMA } from './data.js';
 import * as I from './components/Icons.jsx';
 
@@ -27,6 +28,7 @@ export default function App() {
     <>
       <motion.div className="progress" style={{ scaleX }} />
       <Nav notify={notify} />
+      <MusicPlayer />
 
       <main>
         <Hero />
