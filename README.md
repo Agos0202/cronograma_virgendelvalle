@@ -17,5 +17,5 @@ Todo el cronograma está en `src/data.js`. Las fotos están en `public/`.
 
 ## Publicación
 
-Cada vez que se sube un cambio a la rama `main`, GitHub publica el sitio automáticamente en GitHub Pages
-(ver `.github/workflows/deploy.yml`).
+Cada vez que se sube un cambio a la rama `main`, Cloudflare publica el sitio automáticamente
+(configuración en `wrangler.jsonc`).
